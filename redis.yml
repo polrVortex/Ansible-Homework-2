@@ -1,0 +1,7 @@
+---
+- name: Deploy Redis
+  hosts: all
+  become: true
+
+  roles:
+    - redis

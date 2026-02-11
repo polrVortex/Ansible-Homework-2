@@ -1,0 +1,13 @@
+# Managed by Ansible
+# Testing that template works. Need to work on updating these values
+
+# Bind to localhost for now
+bind 127.0.0.1
+protected-mode yes
+port 6379
+
+daemonize no
+supervised systemd
+
+loglevel notice
+databases 16

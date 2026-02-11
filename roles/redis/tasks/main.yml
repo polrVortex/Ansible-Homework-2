@@ -1,0 +1,22 @@
+---
+- name: Install redis
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+    update_cache: true
+
+- name: Start and enable redis
+  ansible.builtin.service:
+    name: redis
+    state: started
+    enabled: true
+
+# Testing template with normal values & normal permissions
+- name: Deploy redis configuration
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: redis
+    mode: '0644'
+  notify: Restart redis

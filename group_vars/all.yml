@@ -1,0 +1,22 @@
+redis_bind_address: "0.0.0.0"
+
+# Rename commands in redis to prevent unauthorized users from running them
+redis_rename_commands:
+  FLUSHDB: "ADMIN_FLUSHDB"
+  CONFIG: "ADMIN_CONFIG"
+  SHUTDOWN: "ADMIN_SHUTDOWN"
+  FLUSHALL: "ADMIN_FLUSHALL"
+
+redis_allowed_users:
+- name: admin_user
+  password: "AdminPowers123!"
+  key_pattern: "~*"
+  rules: +@all
+- name: hgreen
+  password: "iL0veScience"
+  key_pattern: "~app:*"
+  rules: +@read -@write -@dangerous
+
+redis_rdb_snapshots:
+  - { seconds: 900, changes: 1 }
+  - { seconds: 300, changes: 5 }

@@ -5,12 +5,6 @@
     state: present
     update_cache: true
 
-- name: Start and enable redis
-  ansible.builtin.service:
-    name: redis
-    state: started
-    enabled: true
-
 # Testing template with normal values & normal permissions
 - name: Deploy redis configuration
   ansible.builtin.template:
@@ -20,3 +14,23 @@
     group: redis
     mode: '0644'
   notify: Restart redis
+
+- name: Start and enable redis
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: true
+
+- name: Install UFW
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: true
+  when: firewall_configuration
+
+# - name: Allow Redis port through UFW
+#  ansible.builtin.ufw:
+#    rule: allow
+#    port: "{{ redis_port }}"
+#    proto: tcp
+#  when: firewall_configuration

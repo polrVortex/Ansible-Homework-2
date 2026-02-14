@@ -1,3 +1,28 @@
 ---
-redis_bind_address: "127.0.0.1"
+redis_bind_address: "127.0.0.0"
 redis_port: 6379
+
+# Manually set a default user for early testing
+redis_user: "redis-default"
+redis_password: "blueteam"
+
+# Option to override firewall. Mostly for testing in case I break firewall functionality
+firewall_configuration: false
+
+# By default, disable these commands
+# This should be overriden to rename them instead, to make it harder for attackers to use them
+redis_rename_commands:
+  FLUSHDB: ""
+  CONFIG: ""
+  SHUTDOWN: ""
+  FLUSHALL: ""
+
+redis_allowed_users: []
+
+redis_rdb_snapshots:
+  - { seconds: 900, changes: 1 }
+  - { seconds: 300, changes: 10 }
+  - { seconds: 60, changes: 10000 }
+
+redis_rdb_filename: "dump.rdb"
+redis_rdb_dir: "/var/lib/redis"

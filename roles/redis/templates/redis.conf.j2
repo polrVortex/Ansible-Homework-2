@@ -1,13 +1,41 @@
 # Managed by Ansible
 # Testing that template works. Need to work on updating these values
 
-# Bind to localhost for now
-bind 127.0.0.1
 protected-mode yes
-port 6379
+
+# Bind to localhost for now
+bind {{ redis_bind_address }}
+port {{ redis_port }}
+
+loglevel warning
+
+# Working directory for persistence
+dir {{ redis_rdb_dir }}
+dbfilename {{ redis_rdb_filename }}
+
+{% for rule in redis_rdb_snapshots %}
+save {{ rule.seconds }} {{ rule.changes }}
+{% endfor %}
+
+stop-writes-on-bgsave-error no
+rdbcompression yes
+rdbchecksum yes
+
+# Disable default user, create our own
+user default off
+user {{ redis_user }} on >{{ redis_password }} ~* +@all -@dangerous
+
+# Create allowed users. This might get messy though, might need to separate this later
+{% for user in redis_allowed_users %}
+user {{ user.name }} on >{{ user.password }} {{ user.key_pattern }} {{ user.rules }}
+{% endfor %}
 
 daemonize no
 supervised systemd
 
 loglevel notice
 databases 16
+
+{% for command, new_name in redis_rename_commands.items() %}
+rename-command {{ command }} {{ new_name }}
+{% endfor %}

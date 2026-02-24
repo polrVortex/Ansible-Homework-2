@@ -7,7 +7,7 @@ redis_user: "redis-default"
 redis_password: "blueteam"
 
 # Option to override firewall. Mostly for testing in case I break firewall functionality
-firewall_configuration: false
+firewall_configuration: true
 
 # By default, disable these commands
 # This should be overriden to rename them instead, to make it harder for attackers to use them

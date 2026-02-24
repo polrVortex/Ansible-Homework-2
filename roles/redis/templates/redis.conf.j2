@@ -21,6 +21,11 @@ stop-writes-on-bgsave-error no
 rdbcompression yes
 rdbchecksum yes
 
+appendonly yes
+appendfilename "redis-save.aof"
+# Durability: fsync every command
+appendfsync always
+
 # Disable default user, create our own
 user default off
 user {{ redis_user }} on >{{ redis_password }} ~* +@all -@dangerous
@@ -36,6 +41,8 @@ supervised systemd
 loglevel notice
 databases 16
 
+# Rename or disable dangerous commands
+# Empty command names mean the command is disabled
 {% for command, new_name in redis_rename_commands.items() %}
 rename-command {{ command }} {{ new_name }}
 {% endfor %}

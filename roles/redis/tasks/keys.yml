@@ -1,0 +1,27 @@
+---
+- name: Generate 15 random Redis key/value pairs
+  ansible.builtin.set_fact:
+    redis_data: >-
+      {{
+        dict(
+          range(num_pairs) |
+          map('community.general.password', '/dev/null length=8 chars=ascii_letters') |
+          zip(
+            range(num_pairs) |
+            map('community.general.password', '/dev/null length=20 chars=ascii_letters,digits')
+          )
+        )
+      }}
+
+# Hard-coded credentials for now. I will replace this later
+- name: Store generated Redis data
+  community.general.redis_data:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    login_host: "{{ redis_host }}"
+    login_port: "{{ redis_port }}"
+    login_user: admin_user
+    login_password: "AdminPowers123!"
+    state: present
+    validate_certs: false
+  loop: "{{ redis_data | dict2items }}"

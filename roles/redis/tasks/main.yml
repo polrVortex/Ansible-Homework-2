@@ -5,6 +5,13 @@
     state: present
     update_cache: true
 
+# Ensure Python Redis package is installed. Some Ansible modules require it
+- name: Install Python Redis package
+  ansible.builtin.pip:
+    name: redis
+    state: present
+    executable: pip3
+
 # Testing template with normal values & normal permissions
 - name: Deploy redis configuration
   ansible.builtin.template:
@@ -28,9 +35,12 @@
     update_cache: true
   when: firewall_configuration
 
-# - name: Allow Redis port through UFW
-#  ansible.builtin.ufw:
-#    rule: allow
-#    port: "{{ redis_port }}"
-#    proto: tcp
-#  when: firewall_configuration
+- name: Populate redis data
+  ansible.builtin.import_tasks: keys.yml
+
+- name: Allow Redis port through UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ redis_port }}"
+    proto: tcp
+  when: firewall_configuration

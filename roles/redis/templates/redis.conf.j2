@@ -23,8 +23,8 @@ rdbchecksum yes
 
 appendonly yes
 appendfilename "redis-save.aof"
-# Durability: fsync every command
-appendfsync always
+# Durability: fsync every second
+appendfsync everysec
 
 # Disable default user, create our own
 user default off
@@ -38,7 +38,6 @@ user {{ user.name }} on >{{ user.password }} {{ user.key_pattern }} {{ user.rule
 daemonize no
 supervised systemd
 
-loglevel notice
 databases 16
 
 # Rename or disable dangerous commands
@@ -46,3 +45,8 @@ databases 16
 {% for command, new_name in redis_rename_commands.items() %}
 rename-command {{ command }} {{ new_name }}
 {% endfor %}
+
+tcp-keepalive 300
+
+maxmemory 256mb
+maxmemory-policy noeviction

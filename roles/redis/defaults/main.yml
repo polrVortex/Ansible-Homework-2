@@ -16,6 +16,7 @@ redis_rename_commands:
   CONFIG: ""
   SHUTDOWN: ""
   FLUSHALL: ""
+  SLAVEOF: ""
 
 redis_allowed_users: []
 
@@ -26,3 +27,6 @@ redis_rdb_snapshots:
 
 redis_rdb_filename: "dump.rdb"
 redis_rdb_dir: "/var/lib/redis"
+
+# Number of redis key/value pairs generated in redis/tasks/keys.yml
+num_pairs: 15

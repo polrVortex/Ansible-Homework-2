@@ -6,11 +6,11 @@
     update_cache: true
 
 # Ensure Python Redis package is installed. Some Ansible modules require it
-- name: Install Python Redis package
-  ansible.builtin.pip:
-    name: redis
+- name: Install redis python package
+  ansible.builtin.apt:
+    name: python3-redis
     state: present
-    executable: pip3
+    update_cache: true
 
 # Testing template with normal values & normal permissions
 - name: Deploy redis configuration
@@ -35,12 +35,89 @@
     update_cache: true
   when: firewall_configuration
 
-- name: Populate redis data
-  ansible.builtin.import_tasks: keys.yml
-
 - name: Allow Redis port through UFW
   community.general.ufw:
     rule: allow
     port: "{{ redis_port }}"
     proto: tcp
   when: firewall_configuration
+
+# - name: Populate redis data
+#   ansible.builtin.import_tasks: keys.yml
+
+- name: Create redis temp directory
+  ansible.builtin.file:
+    path: /tmp/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: '0777'
+
+# This backup directory has rwx for everyone
+# Ths can be abused
+- name: Create redis backup directory
+  ansible.builtin.file:
+    path: /tmp/redis/backups
+    state: directory
+    owner: redis
+    group: redis
+    mode: '0777'
+
+# This script can be abused using symlinks
+# Since users can freely modify the destination in tmp,
+# An attacker could delete the destination and replace it with a symlink to virtually anywhere on the system
+# This would allow them to overwrite any file
+- name: Create redis backup script
+  ansible.builtin.copy:
+    dest: /usr/local/bin/redis-backup.sh
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      # Backups are important! This will make sure we save a backup of the redis config. You can never be too safe!
+
+      BACKUP_DIR="/tmp/redis/backups"
+      CONFIG_FILE="/etc/redis/redis.conf"
+
+      cp $CONFIG_FILE $BACKUP_DIR/redis.conf.bak
+
+      chmod 0644 $BACKUP_DIR/redis.conf.bak
+
+- name: Create systemd service for redis backup
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/redis-backup.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Simple Redis Config Backup
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/redis-backup.sh
+
+# Setting up timer to run our script on start and every 20 mins
+- name: Create systemd timer for redis backup
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/redis-backup.timer
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Timer for redis backup
+
+      [Timer]
+      OnUnitActiveSec=20min
+      OnBootSec=1min
+      RandomizedDelaySec=2min
+      Unit=redis-backup.service
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+  notify: Reload systemd
+
+- name: Enable and start redis backup timer
+  ansible.builtin.systemd:
+    name: redis-backup.timer
+    enabled: true
+    state: started

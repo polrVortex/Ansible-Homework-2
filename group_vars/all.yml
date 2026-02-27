@@ -6,16 +6,25 @@ redis_rename_commands:
   CONFIG: "ADMIN_CONFIG"
   SHUTDOWN: "ADMIN_SHUTDOWN"
   FLUSHALL: "ADMIN_FLUSHALL"
+  SLAVEOF: "ADMIN_SLAVEOF"
 
 redis_allowed_users:
   - name: admin_user
     password: "AdminPowers123!"
     key_pattern: "~*"
     rules: "+@all"
+  - name: ajassy
+    password: "AmazonIsTheBest"
+    key_pattern: "~*"
+    rules: "+@all -@flushall -@flushdb -@slaveof"
   - name: hgreen
     password: "iL0veScience"
     key_pattern: "~app:*"
     rules: "+@read -@write -@dangerous"
+  - name: jgreen
+    password: "$Af3L0ngP@ssw0rd!"
+    key_pattern: "~queue:* ~jobs:*"
+    rules: "+@read +@write -@dangerous +@set +@list"
 
 redis_rdb_snapshots:
   - { seconds: 900, changes: 1 }
